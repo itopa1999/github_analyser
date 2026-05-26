@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Profile Analyzer</title>
+    <style>
+        :root {
+            --bg: #F8F6F0;
+            --dark: #1E1E2F;
+            --accent: #4DA3A6;
+            --accent-light: #6dbec0;
+            --accent-dark: #3a7f82;
+            --card-bg: #ffffff;
+            --card-glass: rgba(255, 255, 255, 0.75);
+            --text: #1E1E2F;
+            --text-secondary: #5a5a6e;
+            --text-muted: #8a8a9a;
+            --border: #e8e6df;
+            --shadow-sm: 0 2px 8px rgba(30, 30, 47, 0.05), 0 1px 3px rgba(30, 30, 47, 0.03);
+            --shadow-md: 0 4px 16px rgba(30, 30, 47, 0.07), 0 2px 6px rgba(30, 30, 47, 0.04);
+            --shadow-lg: 0 8px 28px rgba(30, 30, 47, 0.09), 0 3px 10px rgba(30, 30, 47, 0.05);
+            --radius-sm: 10px;
+            --radius: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 22px;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --font-mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            background-image: radial-gradient(ellipse at 50% 0%, rgba(77, 163, 166, 0.04) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 40%, rgba(30, 30, 47, 0.015) 0%, transparent 50%);
+        }
+
+        /* ── Container ─────────────────────── */
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* ── Hero / Search Section ────────── */
+        .hero {
+            text-align: center;
+            padding: 50px 20px 30px;
+            position: relative;
+        }
+        .hero-icon {
+            display: inline-block;
+            width: 52px;
+            height: 52px;
+            margin-bottom: 16px;
+            background: var(--accent);
+            border-radius: var(--radius);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 20px rgba(77, 163, 166, 0.25);
+        }
+        .hero-icon svg {
+            width: 26px;
+            height: 26px;
+            fill: #fff;
+        }
+        .hero h1 {
+            font-size: clamp(1.8rem, 4vw, 2.5rem);
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+        .hero .subtitle {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 520px;
+            margin: 0 auto 28px;
+            line-height: 1.5;
+        }
+        .search-wrapper {
+            display: flex;
+            gap: 10px;
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 6px 6px 6px 18px;
+            box-shadow: var(--shadow-md);
+            border: 2px solid transparent;
+            transition: all var(--transition);
+            align-items: center;
+        }
+        .search-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-lg), 0 0 0 6px rgba(77, 163, 166, 0.08);
+        }
+        .search-wrapper input {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+            color: var(--dark);
+            font-family: inherit;
+            min-width: 0;
+            letter-spacing: -0.01em;
+        }
+        .search-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+        .btn-search {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 13px 24px;
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            letter-spacing: -0.01em;
+            transition: all var(--transition);
+            white-space: nowrap;
+            font-family: inherit;
+            box-shadow: 0 4px 14px rgba(77, 163, 166, 0.3);
+        }
+        .btn-search:hover {
+            background: var(--accent-dark);
+            box-shadow: 0 6px 20px rgba(77, 163, 166, 0.4);
+            transform: translateY(-1px);
+        }
+        .btn-search:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(77, 163, 166, 0.3);
+        }
+        .btn-search:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: 0 2px 8px rgba(77, 163, 166, 0.2);
+        }
+
+        /* ── Results Area ─────────────────── */
+        #results-container {
+            display: none;
+            padding-bottom: 60px;
+        }
+        #results-container.visible {
+            display: block;
+        }
+        .section {
+            margin-bottom: 28px;
+            animation: fadeSlideUp 0.45s ease forwards;
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        .section:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+        .section:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        .section:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+        .section:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+        .section:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+        .section:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+        .section:nth-child(7) {
+            animation-delay: 0.35s;
+        }
+        .section:nth-child(8) {
+            animation-delay: 0.4s;
+        }
+        .section:nth-child(9) {
+            animation-delay: 0.45s;
+        }
+        @keyframes fadeSlideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Cards ────────────────────────── */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 22px 26px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all var(--transition);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            background: var(--card-glass);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .card-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 14px;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            flex-shrink: 0;
+        }
+
+        /* ── Profile Header ──────────────── */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #fff;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+            background: #e8e6df;
+        }
+        .profile-info {
+            flex: 1;
+            min-width: 200px;
+        }
+        .profile-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: -0.02em;
+            margin: 0 0 2px;
+        }
+        .profile-info .login-handle {
+            color: var(--accent);
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+        .profile-info .bio-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        .profile-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .profile-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #f5f3ed;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        .profile-meta a {
+            color: var(--accent-dark);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .profile-meta a:hover {
+            text-decoration: underline;
+        }
+        .btn-gh {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--dark);
+            color: #fff;
+            padding: 10px 18px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all var(--transition);
+            letter-spacing: -0.01em;
+            margin-top: 8px;
+        }
+        .btn-gh:hover {
+            background: #2a2a40;
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+        .btn-gh svg {
+            width: 16px;
+            height: 16px;
+            fill: #fff;
+        }
+
+        /* ── Stats Grid ──────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+        .stat-card {
+            background: var(--card-glass);
+            border-radius: var(--radius);
+            padding: 20px 18px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all var(--transition);
+        }
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: -0.03em;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        .stat-icon {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        /* ── Repo Cards ──────────────────── */
+        .repo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .repo-card {
+            background: var(--card-glass);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all var(--transition);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .repo-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        .repo-name {
+            font-weight: 700;
+            color: var(--dark);
+            font-size: 1rem;
+            letter-spacing: -0.01em;
+            word-break: break-word;
+        }
+        .repo-desc {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .repo-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .repo-meta-row span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .lang-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            background: #eef5f5;
+            color: var(--accent-dark);
+        }
+        .btn-repo {
+            display: inline-block;
+            background: transparent;
+            border: 1.5px solid var(--accent);
+            color: var(--accent-dark);
+            padding: 7px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all var(--transition);
+            letter-spacing: -0.01em;
+            align-self: flex-start;
+        }
+        .btn-repo:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ── Language Chart ──────────────── */
+        .lang-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .lang-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .lang-label {
+            width: 100px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--dark);
+            text-align: right;
+            flex-shrink: 0;
+            letter-spacing: -0.01em;
+        }
+        .lang-bar-wrap {
+            flex: 1;
+            height: 22px;
+            background: #e8e6df;
+            border-radius: 11px;
+            overflow: hidden;
+            position: relative;
+        }
+        .lang-bar-fill {
+            height: 100%;
+            border-radius: 11px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .lang-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            width: 40px;
+            flex-shrink: 0;
+            font-weight: 500;
+        }
+
+        /* ── Followers / Following Grid ──── */
+        .follow-grid {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: #d5d3cc transparent;
+        }
+        .follow-grid::-webkit-scrollbar {
+            height: 4px;
+        }
+        .follow-grid::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .follow-grid::-webkit-scrollbar-thumb {
+            background: #d5d3cc;
+            border-radius: 4px;
+        }
+        .follow-card {
+            flex: 0 0 auto;
+            width: 110px;
+            text-align: center;
+            background: var(--card-glass);
+            border-radius: var(--radius);
+            padding: 16px 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all var(--transition);
+            text-decoration: none;
+            color: inherit;
+        }
+        .follow-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-3px);
+        }
+        .follow-card img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 8px;
+            background: #e8e6df;
+            border: 2px solid #fff;
+            box-shadow: var(--shadow-sm);
+        }
+        .follow-card .fname {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--dark);
+            letter-spacing: -0.01em;
+            word-break: break-word;
+            line-height: 1.2;
+        }
+
+        /* ── Activity Timeline ───────────── */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 420px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #d5d3cc transparent;
+        }
+        .timeline::-webkit-scrollbar {
+            width: 4px;
+        }
+        .timeline::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .timeline::-webkit-scrollbar-thumb {
+            background: #d5d3cc;
+            border-radius: 4px;
+        }
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 10px 14px;
+            background: var(--card-glass);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: all var(--transition);
+        }
+        .timeline-item:hover {
+            box-shadow: var(--shadow-sm);
+        }
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+            background: var(--accent);
+        }
+        .timeline-dot.push {
+            background: #4DA3A6;
+        }
+        .timeline-dot.create {
+            background: #6dbec0;
+        }
+        .timeline-dot.issue {
+            background: #e8a850;
+        }
+        .timeline-dot.pr {
+            background: #8b5cf6;
+        }
+        .timeline-content {
+            font-size: 0.85rem;
+            color: var(--text);
+            line-height: 1.4;
+        }
+        .timeline-content .event-repo {
+            font-weight: 600;
+            color: var(--accent-dark);
+        }
+        .timeline-content .event-time {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ── AI Insights Panel ───────────── */
+        .ai-panel {
+            background: linear-gradient(135deg, rgba(77, 163, 166, 0.06) 0%, rgba(30, 30, 47, 0.02) 100%);
+            border: 1.5px solid rgba(77, 163, 166, 0.2);
+            border-radius: var(--radius-lg);
+            padding: 22px 26px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            position: relative;
+            overflow: hidden;
+        }
+        .ai-panel::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(77, 163, 166, 0.08);
+            pointer-events: none;
+        }
+        .ai-panel .ai-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 16px;
+            letter-spacing: 0.03em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .ai-panel .ai-badge svg {
+            width: 14px;
+            height: 14px;
+            fill: #fff;
+        }
+        .ai-panel p {
+            font-size: 0.95rem;
+            color: var(--text);
+            line-height: 1.6;
+            letter-spacing: -0.005em;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Repo Analytics Cards ────────── */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 14px;
+        }
+        .analytic-card {
+            background: var(--card-glass);
+            border-radius: var(--radius);
+            padding: 16px 18px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            transition: all var(--transition);
+        }
+        .analytic-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .analytic-card .an-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .analytic-card .an-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            letter-spacing: -0.02em;
+            word-break: break-word;
+        }
+        .analytic-card .an-sub {
+            font-size: 0.78rem;
+            color: var(--accent-dark);
+            font-weight: 500;
+        }
+
+        /* ── Skeleton Loaders ────────────── */
+        .skeleton {
+            background: linear-gradient(90deg, #e8e6df 25%, #f0eee8 50%, #e8e6df 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+            100% {
+                background-position: -200% 0;
+            }
+        }
+        .skeleton-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+        }
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+        }
+        .skeleton-text.short {
+            width: 60%;
+        }
+        .skeleton-text.medium {
+            width: 80%;
+        }
+        .skeleton-card {
+            height: 80px;
+            border-radius: var(--radius);
+        }
+        .skeleton-repo {
+            height: 130px;
+            border-radius: var(--radius);
+        }
+        .skeleton-follow {
+            width: 110px;
+            height: 130px;
+            border-radius: var(--radius);
+            flex-shrink: 0;
+        }
+
+        /* ── Error / Empty States ────────── */
+        .error-msg {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #b91c1c;
+            padding: 16px 20px;
+            border-radius: var(--radius);
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .empty-state svg {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+            opacity: 0.5;
+        }
+
+        /* ── Responsive ──────────────────── */
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .repo-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .profile-meta {
+                justify-content: center;
+            }
+            .analytics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .lang-label {
+                width: 70px;
+                font-size: 0.75rem;
+            }
+            .hero {
+                padding: 30px 16px 20px;
+            }
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            .hero .subtitle {
+                font-size: 0.9rem;
+            }
+            .search-wrapper {
+                flex-direction: column;
+                gap: 8px;
+                padding: 10px;
+                border-radius: var(--radius);
+            }
+            .search-wrapper input {
+                width: 100%;
+                text-align: center;
+                padding: 8px 0;
+            }
+            .btn-search {
+                width: 100%;
+                text-align: center;
+                border-radius: var(--radius-sm);
+            }
+            .card {
+                padding: 16px;
+            }
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
+            }
+            .follow-card {
+                width: 90px;
+                padding: 12px 8px;
+            }
+            .follow-card img {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        @media (max-width: 400px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            .stat-value {
+                font-size: 1.3rem;
+            }
+            .analytics-grid {
+                grid-template-columns: 1fr;
+            }
+            .lang-label {
+                width: 55px;
+                font-size: 0.7rem;
+            }
+            .follow-card {
+                width: 75px;
+            }
+            .follow-card img {
+                width: 34px;
+                height: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- HERO / SEARCH SECTION                 -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="hero">
+        <div class="hero-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.387.6.113.793-.26.793-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.303-5.467-1.333-5.467-5.933 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.3 1.23a11.52 11.52 0 013.003-.404 11.52 11.52 0 013.003.404c2.29-1.552 3.297-1.23 3.297-1.23.653 1.652.242 2.873.12 3.176.77.84 1.234 1.91 1.234 3.22 0 4.61-2.805 5.627-5.476 5.922.43.37.813 1.102.813 2.222 0 1.604-.015 2.898-.015 3.293 0 .32.19.694.8.576C20.565 21.796 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+        </div>
+        <h1>GitHub Profile Analyzer</h1>
+        <p class="subtitle">Analyze any GitHub profile instantly with deep insights on repositories, activity, and developer patterns.</p>
+        <div class="search-wrapper" id="searchWrapper">
+            <input
+            type="text"
+            id="usernameInput"
+            placeholder="Enter GitHub username..."
+            autocomplete="off"
+            spellcheck="false"
+            aria-label="GitHub username"
+            >
+            <button class="btn-search" id="btnSearch" aria-label="Analyze Profile">
+                Analyze Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════ -->
+    <!-- RESULTS CONTAINER                     -->
+    <!-- ═══════════════════════════════════════ -->
+    <div class="container" id="results-container">
+        <!-- Sections will be dynamically populated -->
+        <div id="allSections"></div>
+    </div>
+
+    <script>
+        (function() {
+            // ────────── DOM Elements ──────────
+            const usernameInput = document.getElementById('usernameInput');
+            const btnSearch = document.getElementById('btnSearch');
+            const resultsContainer = document.getElementById('results-container');
+            const allSections = document.getElementById('allSections');
+            const searchWrapper = document.getElementById('searchWrapper');
+
+            // ────────── State ──────────
+            let currentUsername = '';
+            let isSearching = false;
+
+            // ────────── Language Colors ──────────
+            const langColors = {
+                'JavaScript': '#f1e05a',
+                'TypeScript': '#3178c6',
+                'Python': '#3572A5',
+                'Java': '#b07219',
+                'Go': '#00ADD8',
+                'Rust': '#dea584',
+                'C#': '#178600',
+                'PHP': '#4F5D95',
+                'Ruby': '#701516',
+                'C++': '#f34b7d',
+                'C': '#555555',
+                'HTML': '#e34c26',
+                'CSS': '#563d7c',
+                'Shell': '#89e051',
+                'Swift': '#F05138',
+                'Kotlin': '#A97BFF',
+                'Dart': '#00B4AB',
+                'Vue': '#41b883',
+                'Jupyter Notebook': '#DA5B0B',
+                'SCSS': '#c6538c',
+                'Lua': '#000080',
+                'R': '#198CE7',
+                'Objective-C': '#438eff',
+                'Scala': '#c22d40',
+                'Haskell': '#5e5086',
+                'Elixir': '#6e4a7e',
+                'Clojure': '#db5855',
+                'Erlang': '#B83998',
+                'PowerShell': '#012456',
+            };
+
+            function getLangColor(lang) {
+                return langColors[lang] || '#8a8a9a';
+            }
+
+            // ────────── Helper: Format Date ──────────
+            function timeAgo(dateString) {
+                const now = new Date();
+                const past = new Date(dateString);
+                const diffMs = now - past;
+                const diffSec = Math.floor(diffMs / 1000);
+                const diffMin = Math.floor(diffSec / 60);
+                const diffHr = Math.floor(diffMin / 60);
+                const diffDay = Math.floor(diffHr / 24);
+                if (diffDay > 30) {
+                    const diffMonth = Math.floor(diffDay / 30);
+                    if (diffMonth > 12) return Math.floor(diffMonth / 12) + ' year(s) ago';
+                    return diffMonth + ' month(s) ago';
+                }
+                if (diffDay > 0) return diffDay + ' day(s) ago';
+                if (diffHr > 0) return diffHr + ' hour(s) ago';
+                if (diffMin > 0) return diffMin + ' minute(s) ago';
+                return 'just now';
+            }
+
+            function formatDate(dateString) {
+                return new Date(dateString).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+
+            // ────────── Event Type Classification ──────────
+            function getEventDotClass(eventType) {
+                switch (eventType) {
+                    case 'PushEvent':
+                        return 'push';
+                    case 'CreateEvent':
+                        return 'create';
+                    case 'IssuesEvent':
+                        return 'issue';
+                    case 'PullRequestEvent':
+                        return 'pr';
+                    default:
+                        return '';
+                }
+            }
+
+            function formatEventText(event) {
+                const repoName = event.repo?.name || 'unknown';
+                const repoUrl = `https://github.com/${repoName}`;
+                switch (event.type) {
+                    case 'PushEvent': {
+                        const commitCount = event.payload?.commits?.length || 0;
+                        const branch = (event.payload?.ref || 'refs/heads/main').replace('refs/heads/', '');
+                        return `Pushed <strong>${commitCount}</strong> commit(s) to <span class="event-repo">${repoName}</span> (${branch})`;
+                    }
+                    case 'CreateEvent': {
+                        const refType = event.payload?.ref_type || 'repository';
+                        const ref = event.payload?.ref || '';
+                        if (refType === 'repository') return `Created repository <span class="event-repo">${repoName}</span>`;
+                        return `Created ${refType} <strong>${ref}</strong> in <span class="event-repo">${repoName}</span>`;
+                    }
+                    case 'IssuesEvent': {
+                        const action = event.payload?.action || 'opened';
+                        return `${action.charAt(0).toUpperCase() + action.slice(1)} an issue in <span class="event-repo">${repoName}</span>`;
+                    }
+                    case 'PullRequestEvent': {
+                        const action = event.payload?.action || 'opened';
+                        return `${action.charAt(0).toUpperCase() + action.slice(1)} a pull request in <span class="event-repo">${repoName}</span>`;
+                    }
+                    case 'WatchEvent':
+                        return `Starred <span class="event-repo">${repoName}</span>`;
+                    case 'ForkEvent':
+                        return `Forked <span class="event-repo">${repoName}</span>`;
+                    case 'DeleteEvent': {
+                        const refType = event.payload?.ref_type || 'ref';
+                        const ref = event.payload?.ref || '';
+                        return `Deleted ${refType} <strong>${ref}</strong> in <span class="event-repo">${repoName}</span>`;
+                    }
+                    case 'PublicEvent':
+                        return `Made <span class="event-repo">${repoName}</span> public`;
+                    case 'ReleaseEvent':
+                        return `Released <strong>${event.payload?.release?.tag_name || 'new version'}</strong> in <span class="event-repo">${repoName}</span>`;
+                    case 'MemberEvent':
+                        return `Added collaborator to <span class="event-repo">${repoName}</span>`;
+                    default:
+                        return `${event.type.replace('Event', '')} in <span class="event-repo">${repoName}</span>`;
+                }
+            }
+
+            // ────────── Skeleton HTML ──────────
+            function generateSkeletonHTML() {
+                return `
+                <!-- Profile Header Skeleton -->
+                <div class="section">
+                  <div class="card">
+                    <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+                      <div class="skeleton skeleton-avatar"></div>
+                      <div style="flex:1;min-width:200px;">
+                        <div class="skeleton skeleton-text" style="width:50%;height:22px;"></div>
+                        <div class="skeleton skeleton-text short" style="height:14px;"></div>
+                        <div class="skeleton skeleton-text medium" style="height:14px;"></div>
+                        <div class="skeleton skeleton-text" style="width:40%;height:14px;"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Stats Skeleton -->
+                <div class="section">
+                  <div class="stats-grid">
+                    ${Array(4).fill('<div class="skeleton skeleton-card"></div>').join('')}
+                  </div>
+                </div>
+                <!-- AI Panel Skeleton -->
+                <div class="section">
+                  <div class="skeleton" style="height:90px;border-radius:var(--radius-lg);"></div>
+                </div>
+                <!-- Repo Analytics Skeleton -->
+                <div class="section">
+                  <div class="analytics-grid">
+                    ${Array(5).fill('<div class="skeleton skeleton-card"></div>').join('')}
+                  </div>
+                </div>
+                <!-- Repos Skeleton -->
+                <div class="section">
+                  <div class="card-header"><div class="dot"></div> Repositories</div>
+                  <div class="repo-grid">
+                    ${Array(6).fill('<div class="skeleton skeleton-repo"></div>').join('')}
+                  </div>
+                </div>
+                <!-- Language Skeleton -->
+                <div class="section">
+                  <div class="skeleton" style="height:140px;border-radius:var(--radius-lg);"></div>
+                </div>
+                <!-- Followers Skeleton -->
+                <div class="section">
+                  <div class="card-header"><div class="dot"></div> Followers</div>
+                  <div class="follow-grid">
+                    ${Array(8).fill('<div class="skeleton skeleton-follow"></div>').join('')}
+                  </div>
+                </div>
+                <!-- Following Skeleton -->
+                <div class="section">
+                  <div class="card-header"><div class="dot"></div> Following</div>
+                  <div class="follow-grid">
+                    ${Array(8).fill('<div class="skeleton skeleton-follow"></div>').join('')}
+                  </div>
+                </div>
+                <!-- Activity Skeleton -->
+                <div class="section">
+                  <div class="skeleton" style="height:200px;border-radius:var(--radius-lg);"></div>
+                </div>
+              `;
+            }
+
+            // ────────── Show Skeletons ──────────
+            function showSkeletons() {
+                allSections.innerHTML = generateSkeletonHTML();
+                resultsContainer.classList.add('visible');
+                // Reset animation delays on skeletons (they don't need fade)
+                const skelSections = allSections.querySelectorAll('.section');
+                skelSections.forEach(s => {
+                    s.style.animation = 'none';
+                    s.style.opacity = '1';
+                    s.style.transform = 'none';
+                });
+                // Scroll to results
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ────────── Render All Sections ──────────
+            function renderAll(userData, reposData, followersData, followingData, eventsData) {
+                const html = buildFullHTML(userData, reposData, followersData, followingData, eventsData);
+                allSections.innerHTML = html;
+                resultsContainer.classList.add('visible');
+                // Re-trigger animations
+                const sections = allSections.querySelectorAll('.section');
+                sections.forEach(s => {
+                    s.style.animation = 'none';
+                    s.offsetHeight;
+                    s.style.animation = '';
+                });
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            function buildFullHTML(user, repos, followers, following, events) {
+                // ── Profile Header ──
+                const profileHTML = buildProfileHeader(user);
+                // ── Stats ──
+                const statsHTML = buildStatsGrid(user);
+                // ── AI Insights ──
+                const aiHTML = buildAIInsights(user, repos, events);
+                // ── Repo Analytics ──
+                const analyticsHTML = buildRepoAnalytics(repos);
+                // ── Repos ──
+                const reposHTML = buildReposSection(repos);
+                // ── Language Insights ──
+                const langHTML = buildLanguageChart(repos);
+                // ── Followers ──
+                const followersHTML = buildFollowSection(followers, 'Followers', 'No followers yet.');
+                // ── Following ──
+                const followingHTML = buildFollowSection(following, 'Following', 'Not following anyone.');
+                // ── Activity Timeline ──
+                const activityHTML = buildActivityTimeline(events);
+
+                return `
+                <div class="section">${profileHTML}</div>
+                <div class="section">${statsHTML}</div>
+                <div class="section">${aiHTML}</div>
+                <div class="section">${analyticsHTML}</div>
+                <div class="section">
+                  <div class="card-header"><span class="dot"></span> Repositories</div>
+                  ${reposHTML}
+                </div>
+                <div class="section">
+                  <div class="card">
+                    <div class="card-header"><span class="dot"></span> Language Insights</div>
+                    ${langHTML}
+                  </div>
+                </div>
+                <div class="section">
+                  <div class="card-header"><span class="dot"></span> Followers</div>
+                  ${followersHTML}
+                </div>
+                <div class="section">
+                  <div class="card-header"><span class="dot"></span> Following</div>
+                  ${followingHTML}
+                </div>
+                <div class="section">
+                  <div class="card">
+                    <div class="card-header"><span class="dot"></span> Activity Timeline</div>
+                    ${activityHTML}
+                  </div>
+                </div>
+                <div class="section">
+                <div class="card">
+                    <div class="card-header"><span class="dot"></span> Contribution Heatmap</div>
+                    <img 
+                    src="https://ghchart.rshah.org/${encodeURIComponent(user.login)}" 
+                    alt="Contribution graph" 
+                    style="width:100%; border-radius:12px; margin-top:10px;"
+                    onerror="this.style.display='none'"
+                    />
+                </div>
+                </div>
+              `;
+
+
+            }
+
+            function buildProfileHeader(user) {
+                const name = user.name || user.login;
+                const bio = user.bio || '';
+                const location = user.location || '';
+                const company = user.company || '';
+                const blog = user.blog || '';
+                const twitter = user.twitter_username || '';
+                const created = formatDate(user.created_at);
+                return `
+                <div class="card">
+                  <div class="profile-header">
+                    <img class="profile-avatar" src="${escapeHTML(user.avatar_url)}" alt="${escapeHTML(name)}" loading="lazy" onerror="this.style.display='none'">
+                    <div class="profile-info">
+                      <h3>${escapeHTML(name)}</h3>
+                      <div class="login-handle">@${escapeHTML(user.login)}</div>
+                      ${bio ? `<div class="bio-text">${escapeHTML(bio)}</div>` : ''}
+                      <div class="profile-meta">
+                        ${location ? `<span>📍 ${escapeHTML(location)}</span>` : ''}
+                        ${company ? `<span>🏢 ${escapeHTML(company)}</span>` : ''}
+                        ${blog ? `<span>🔗 <a href="${escapeHTML(blog)}" target="_blank" rel="noopener">${escapeHTML(blog.replace(/^https?:\/\//, ''))}</a></span>` : ''}
+                        ${twitter ? `<span>🐦 <a href="https://twitter.com/${escapeHTML(twitter)}" target="_blank" rel="noopener">@${escapeHTML(twitter)}</a></span>` : ''}
+                        <span>📅 Joined ${created}</span>
+                      </div>
+                      <a href="${escapeHTML(user.html_url)}" target="_blank" rel="noopener" class="btn-gh">
+                        <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.207 11.387.6.113.793-.26.793-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.303-5.467-1.333-5.467-5.933 0-1.31.468-2.38 1.236-3.22-.124-.303-.536-1.524.117-3.176 0 0 1.008-.322 3.3 1.23a11.52 11.52 0 013.003-.404 11.52 11.52 0 013.003.404c2.29-1.552 3.297-1.23 3.297-1.23.653 1.652.242 2.873.12 3.176.77.84 1.234 1.91 1.234 3.22 0 4.61-2.805 5.627-5.476 5.922.43.37.813 1.102.813 2.222 0 1.604-.015 2.898-.015 3.293 0 .32.19.694.8.576C20.565 21.796 24 17.3 24 12 24 5.37 18.63 0 12 0z"/></svg>
+                        View on GitHub
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            function buildStatsGrid(user) {
+                const stats = [
+                    { value: user.public_repos ?? 0, label: 'Repositories', icon: '📁' },
+                    { value: user.followers ?? 0, label: 'Followers', icon: '👥' },
+                    { value: user.following ?? 0, label: 'Following', icon: '🔗' },
+                    { value: user.public_gists ?? 0, label: 'Gists', icon: '📝' },
+                ];
+                return `
+                <div class="stats-grid">
+                  ${stats.map(s => `
+                    <div class="stat-card">
+                      <div class="stat-icon">${s.icon}</div>
+                      <div class="stat-value">${s.value.toLocaleString()}</div>
+                      <div class="stat-label">${s.label}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }
+
+            function buildAIInsights(user, repos, events) {
+                const totalRepos = repos.length;
+                const totalStars = repos.reduce((sum, r) => sum + (r.stargazers_count || 0), 0);
+                const totalForks = repos.reduce((sum, r) => sum + (r.forks_count || 0), 0);
+                const langCounts = {};
+                repos.forEach(r => {
+                    if (r.language) langCounts[r.language] = (langCounts[r.language] || 0) + 1;
+                });
+                const sortedLangs = Object.entries(langCounts).sort((a, b) => b[1] - a[1]);
+                const topLang = sortedLangs.length > 0 ? sortedLangs[0][0] : null;
+                const topLangCount = sortedLangs.length > 0 ? sortedLangs[0][1] : 0;
+                const langDiversity = sortedLangs.length;
+                const accountAgeYears = Math.floor((Date.now() - new Date(user.created_at).getTime()) / (365.25 * 24 *
+                    60 * 60 * 1000));
+                const hasBio = !!user.bio;
+                const hasCompany = !!user.company;
+                const hasBlog = !!user.blog;
+                const hasTwitter = !!user.twitter_username;
+                const profileCompleteness = [hasBio, hasCompany, hasBlog, hasTwitter].filter(Boolean).length;
+                const pushEvents = events.filter(e => e.type === 'PushEvent').length;
+                const createEvents = events.filter(e => e.type === 'CreateEvent').length;
+                const issuePREvents = events.filter(e => e.type === 'IssuesEvent' || e.type === 'PullRequestEvent')
+                    .length;
+                const recentActivityLevel = events.length;
+                const reposWithDesc = repos.filter(r => r.description).length;
+                const descRatio = totalRepos > 0 ? reposWithDesc / totalRepos : 0;
+
+                let insights = '';
+                // Intro
+                insights +=
+                    `This developer has been active on GitHub for <strong>${accountAgeYears} year(s)</strong> since ${formatDate(user.created_at)}`;
+                if (totalRepos > 0) {
+                    insights +=
+                        ` and maintains <strong>${totalRepos} public repositories</strong> with a combined total of <strong>${totalStars.toLocaleString()} stars</strong> and <strong>${totalForks.toLocaleString()} forks</strong>.`;
+                } else {
+                    insights += `.`;
+                }
+                // Language focus
+                if (topLang && topLangCount > 0) {
+                    const pct = Math.round((topLangCount / totalRepos) * 100);
+                    insights +=
+                        ` Their primary language is <strong>${topLang}</strong>, used in <strong>${pct}%</strong> of their repositories`;
+                    if (langDiversity > 1) {
+                        insights +=
+                            `, with <strong>${langDiversity}</strong> different languages across their portfolio, showing ${langDiversity >= 4 ? 'strong versatility' : 'focused expertise'}.`;
+                    } else {
+                        insights += `.`;
+                    }
+                }
+                // Activity
+                if (recentActivityLevel > 0) {
+                    if (pushEvents > recentActivityLevel * 0.5) {
+                        insights +=
+                            ` Recent activity shows <strong>consistent code contributions</strong> with frequent pushes`;
+                    } else if (createEvents > recentActivityLevel * 0.3) {
+                        insights += ` They've been <strong>actively creating new projects</strong> recently`;
+                    } else if (issuePREvents > 0) {
+                        insights +=
+                            ` They show <strong>engagement in collaboration</strong> through issues and pull requests`;
+                    }
+                    insights += ` — <strong>${recentActivityLevel}</strong> public events recorded recently.`;
+                }
+                // Profile quality
+                if (profileCompleteness >= 3) {
+                    insights +=
+                        ` Their profile is <strong>well-documented</strong> with bio, links, and contact information, making them easy to connect with.`;
+                } else if (profileCompleteness <= 1 && totalRepos > 0) {
+                    insights +=
+                        ` Adding more profile details could help improve their visibility in the developer community.`;
+                }
+                // Description quality
+                if (descRatio > 0.7 && totalRepos > 3) {
+                    insights += ` Most repositories include clear descriptions, reflecting <strong>good documentation habits</strong>.`;
+                } else if (descRatio < 0.3 && totalRepos > 3) {
+                    insights +=
+                        ` Many repositories lack descriptions — adding them would improve project discoverability.`;
+                }
+                // Final note
+                if (totalStars > 50) {
+                    insights += ` Overall, this is a <strong>well-recognized developer</strong> with meaningful community impact.`;
+                } else if (totalRepos > 10 && totalStars < 10) {
+                    insights += ` This profile reflects a <strong>steady builder</strong> — consistent work with room for broader community reach.`;
+                }
+                if (totalRepos === 0) {
+                    insights = `This developer has been on GitHub for <strong>${accountAgeYears} year(s)</strong> but has no public repositories yet. Their activity is primarily through contributions, issues, or private work.`;
+                }
+
+                return `
+                <div class="ai-panel">
+                  <div class="ai-badge">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    AI Insights
+                  </div>
+                  <p>${insights}</p>
+                </div>
+              `;
+            }
+
+            function buildRepoAnalytics(repos) {
+                if (repos.length === 0) {
+                    return `
+                <div class="card">
+                  <div class="card-header"><span class="dot"></span> Repository Analytics</div>
+                  <div class="empty-state">No repositories to analyze.</div>
+                </div>`;
+                }
+                const mostStarred = repos.reduce((best, r) => (r.stargazers_count || 0) > (best.stargazers_count || 0) ?
+                    r : best, repos[0]);
+                const mostForked = repos.reduce((best, r) => (r.forks_count || 0) > (best.forks_count || 0) ? r : best,
+                    repos[0]);
+                const totalStars = repos.reduce((sum, r) => sum + (r.stargazers_count || 0), 0);
+                const totalForks = repos.reduce((sum, r) => sum + (r.forks_count || 0), 0);
+                const langCounts = {};
+                repos.forEach(r => { if (r.language) langCounts[r.language] = (langCounts[r.language] || 0) + 1; });
+                const mostUsedLang = Object.entries(langCounts).sort((a, b) => b[1] - a[1])[0];
+                const avgStars = repos.length > 0 ? (totalStars / repos.length).toFixed(1) : 0;
+                return `
+                <div class="card">
+                  <div class="card-header"><span class="dot"></span> Repository Analytics</div>
+                  <div class="analytics-grid">
+                    <div class="analytic-card">
+                      <div class="an-label">⭐ Most Starred</div>
+                      <div class="an-value">${escapeHTML(mostStarred.name)}</div>
+                      <div class="an-sub">${mostStarred.stargazers_count?.toLocaleString() || 0} stars</div>
+                    </div>
+                    <div class="analytic-card">
+                      <div class="an-label">🍴 Most Forked</div>
+                      <div class="an-value">${escapeHTML(mostForked.name)}</div>
+                      <div class="an-sub">${mostForked.forks_count?.toLocaleString() || 0} forks</div>
+                    </div>
+                    <div class="analytic-card">
+                      <div class="an-label">🌟 Total Stars</div>
+                      <div class="an-value">${totalStars.toLocaleString()}</div>
+                      <div class="an-sub">Avg ${avgStars} per repo</div>
+                    </div>
+                    <div class="analytic-card">
+                      <div class="an-label">🔧 Total Forks</div>
+                      <div class="an-value">${totalForks.toLocaleString()}</div>
+                    </div>
+                    <div class="analytic-card">
+                      <div class="an-label">📊 Top Language</div>
+                      <div class="an-value">${mostUsedLang ? escapeHTML(mostUsedLang[0]) : 'N/A'}</div>
+                      <div class="an-sub">${mostUsedLang ? mostUsedLang[1] + ' repos' : ''}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }
+
+            function buildReposSection(repos) {
+                if (repos.length === 0) {
+                    return '<div class="empty-state">No public repositories found.</div>';
+                }
+                const sortedRepos = [...repos].sort((a, b) => (b.stargazers_count || 0) - (a.stargazers_count || 0));
+                return `
+                <div class="repo-grid">
+                  ${sortedRepos.map(repo => `
+                    <div class="repo-card">
+                      <div class="repo-name">${escapeHTML(repo.name)}</div>
+                      <div class="repo-desc">${escapeHTML(repo.description || 'No description provided.')}</div>
+                      <div class="repo-meta-row">
+                        ${repo.language ? `<span class="lang-badge" style="background:${getLangColor(repo.language)}22;color:${getLangColor(repo.language)};border:1px solid ${getLangColor(repo.language)}44;">${escapeHTML(repo.language)}</span>` : ''}
+                        <span>⭐ ${(repo.stargazers_count || 0).toLocaleString()}</span>
+                        <span>🍴 ${(repo.forks_count || 0).toLocaleString()}</span>
+                        <span style="font-size:0.7rem;">Updated ${timeAgo(repo.updated_at)}</span>
+                      </div>
+                      <a href="${escapeHTML(repo.html_url)}" target="_blank" rel="noopener" class="btn-repo">View Repo →</a>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }
+
+            function buildLanguageChart(repos) {
+                const langCounts = {};
+                repos.forEach(r => {
+                    if (r.language) langCounts[r.language] = (langCounts[r.language] || 0) + 1;
+                });
+                const sorted = Object.entries(langCounts).sort((a, b) => b[1] - a[1]);
+                if (sorted.length === 0) {
+                    return '<div class="empty-state">No language data available.</div>';
+                }
+                const total = sorted.reduce((sum, [, c]) => sum + c, 0);
+                return `
+                <div class="lang-chart">
+                  ${sorted.map(([lang, count]) => {
+                    const pct = Math.round((count / total) * 100);
+                    const color = getLangColor(lang);
+                    return `
+                      <div class="lang-row">
+                        <div class="lang-label">${escapeHTML(lang)}</div>
+                        <div class="lang-bar-wrap">
+                          <div class="lang-bar-fill" style="width:${pct}%;background:${color};"></div>
+                        </div>
+                        <div class="lang-count">${count} (${pct}%)</div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              `;
+            }
+
+            function buildFollowSection(users, title, emptyMsg) {
+                if (!users || users.length === 0) {
+                    return `<div class="empty-state">${emptyMsg}</div>`;
+                }
+                return `
+                <div class="follow-grid">
+                  ${users.map(u => `
+                    <a href="${escapeHTML(u.html_url)}" target="_blank" rel="noopener" class="follow-card">
+                      <img src="${escapeHTML(u.avatar_url)}" alt="${escapeHTML(u.login)}" loading="lazy" onerror="this.style.display='none'">
+                      <div class="fname">${escapeHTML(u.login)}</div>
+                    </a>
+                  `).join('')}
+                </div>
+              `;
+            }
+
+            function buildActivityTimeline(events) {
+                if (!events || events.length === 0) {
+                    return '<div class="empty-state">No recent public activity.</div>';
+                }
+                const recentEvents = events.slice(0, 25);
+                return `
+                <div class="timeline">
+                  ${recentEvents.map(event => `
+                    <div class="timeline-item">
+                      <div class="timeline-dot ${getEventDotClass(event.type)}"></div>
+                      <div class="timeline-content">
+                        ${formatEventText(event)}
+                        <span class="event-time">${timeAgo(event.created_at)}</span>
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              `;
+            }
+
+            // ────────── Escape HTML ──────────
+            function escapeHTML(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ────────── Error Display ──────────
+            function showError(message) {
+                allSections.innerHTML = `
+                <div class="section">
+                  <div class="error-msg">${message}</div>
+                </div>
+              `;
+                resultsContainer.classList.add('visible');
+                resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ────────── Fetch Functions ──────────
+            async function fetchJSON(url) {
+                const response = await fetch(url);
+                if (response.status === 404) {
+                    throw new Error('USER_NOT_FOUND');
+                }
+                if (response.status === 403) {
+                    const remaining = response.headers.get('X-RateLimit-Remaining');
+                    if (remaining === '0') {
+                        throw new Error('RATE_LIMIT');
+                    }
+                    throw new Error('FORBIDDEN');
+                }
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                return response.json();
+            }
+
+            // ────────── Main Search Handler ──────────
+            async function performSearch(username) {
+                if (isSearching) return;
+                const trimmed = username.trim();
+                if (!trimmed) {
+                    showError('⚠️ Please enter a GitHub username.');
+                    return;
+                }
+                if (trimmed === currentUsername && resultsContainer.classList.contains('visible')) {
+                    // Re-scroll to results
+                    resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    return;
+                }
+                currentUsername = trimmed;
+                isSearching = true;
+                btnSearch.disabled = true;
+                btnSearch.textContent = 'Analyzing...';
+                showSkeletons();
+
+                try {
+                    // First, validate user exists
+                    let userData;
+                    try {
+                        userData = await fetchJSON(
+                            `https://api.github.com/users/${encodeURIComponent(currentUsername)}`);
+                    } catch (err) {
+                        if (err.message === 'USER_NOT_FOUND') {
+                            showError(
+                                '🔍 <strong>User not found.</strong> Please check the username and try again.');
+                            return;
+                        }
+                        if (err.message === 'RATE_LIMIT') {
+                            showError(
+                                '⏳ <strong>Rate limit exceeded.</strong> GitHub allows 60 requests/hour for unauthenticated users. Please try again later.'
+                                );
+                            return;
+                        }
+                        throw err;
+                    }
+
+                    // Fetch remaining data in parallel
+                    const [reposData, followersData, followingData, eventsData] = await Promise.all([
+                        fetchJSON(
+                            `https://api.github.com/users/${encodeURIComponent(currentUsername)}/repos?per_page=100&sort=updated`
+                            ).catch(() => []),
+                        fetchJSON(
+                            `https://api.github.com/users/${encodeURIComponent(currentUsername)}/followers?per_page=30`
+                            ).catch(() => []),
+                        fetchJSON(
+                            `https://api.github.com/users/${encodeURIComponent(currentUsername)}/following?per_page=30`
+                            ).catch(() => []),
+                        fetchJSON(
+                            `https://api.github.com/users/${encodeURIComponent(currentUsername)}/events/public?per_page=30`
+                            ).catch(() => []),
+                    ]);
+
+                    renderAll(userData, Array.isArray(reposData) ? reposData : [],
+                        Array.isArray(followersData) ? followersData : [],
+                        Array.isArray(followingData) ? followingData : [],
+                        Array.isArray(eventsData) ? eventsData : []);
+                } catch (err) {
+                    console.error('Search error:', err);
+                    showError(
+                        '⚠️ <strong>Something went wrong.</strong> Please check your connection and try again. If the issue persists, GitHub API may be temporarily unavailable.'
+                        );
+                } finally {
+                    isSearching = false;
+                    btnSearch.disabled = false;
+                    btnSearch.textContent = 'Analyze Profile';
+                }
+            }
+
+            // ────────── Event Listeners ──────────
+            btnSearch.addEventListener('click', () => {
+                performSearch(usernameInput.value);
+            });
+
+            usernameInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performSearch(usernameInput.value);
+                }
+            });
+
+            // ────────── Focus input on load ──────────
+            usernameInput.focus();
+
+            // ────────── Demo: auto-search if URL has query param ──────────
+            const urlParams = new URLSearchParams(window.location.search);
+            const queryUser = urlParams.get('user');
+            if (queryUser) {
+                usernameInput.value = queryUser;
+                performSearch(queryUser);
+            }
+        })();
+    </script>
+</body>
+</html>
