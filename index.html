@@ -1320,7 +1320,7 @@
                         insights +=
                             ` They show <strong>engagement in collaboration</strong> through issues and pull requests`;
                     }
-                    insights += ` — <strong>${recentActivityLevel}</strong> public events recorded recently.`;
+                    insights += ` : <strong>${recentActivityLevel}</strong> public events recorded recently.`;
                 }
                 // Profile quality
                 if (profileCompleteness >= 3) {
@@ -1335,13 +1335,13 @@
                     insights += ` Most repositories include clear descriptions, reflecting <strong>good documentation habits</strong>.`;
                 } else if (descRatio < 0.3 && totalRepos > 3) {
                     insights +=
-                        ` Many repositories lack descriptions — adding them would improve project discoverability.`;
+                        ` Many repositories lack descriptions, adding them would improve project discoverability.`;
                 }
                 // Final note
                 if (totalStars > 50) {
                     insights += ` Overall, this is a <strong>well-recognized developer</strong> with meaningful community impact.`;
                 } else if (totalRepos > 10 && totalStars < 10) {
-                    insights += ` This profile reflects a <strong>steady builder</strong> — consistent work with room for broader community reach.`;
+                    insights += ` This profile reflects a <strong>steady builder</strong> consistent work with room for broader community reach.`;
                 }
                 if (totalRepos === 0) {
                     insights = `This developer has been on GitHub for <strong>${accountAgeYears} year(s)</strong> but has no public repositories yet. Their activity is primarily through contributions, issues, or private work.`;
